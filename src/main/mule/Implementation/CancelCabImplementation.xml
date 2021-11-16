@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="CancelCabFlow" doc:id="8fbbd0c8-b2b3-4953-ba98-c38eb272cdfb" >
+		<foreach doc:name="For Each" doc:id="d4498fea-122f-4093-83b5-5641771612a9" >
+			<scatter-gather doc:name="Scatter-Gather" doc:id="99a6206b-623f-4c62-ae06-6e103a74c68a" >
+				<route >
+					<db:update doc:name="Updatecabdetails" doc:id="39991fd2-cfc4-4abe-9cba-5bcb0dd5a5a5" config-ref="Database_Config">
+						<db:sql ><![CDATA[update ola_cabdetails set status='Available' where vehicle_no=:vehicleno 
+and status='Cab Booked']]></db:sql>
+						<db:input-parameters ><![CDATA[#[{
+	"vehicleno" : payload.vehicleno
+}]]]></db:input-parameters>
+					</db:update>
+				</route>
+				<route >
+					<db:update doc:name="Updatebookingdetials" doc:id="c7ede5b1-6280-4e6f-a241-caeadeae5797" config-ref="Database_Config">
+						<db:sql><![CDATA[update ola_bookings set status='Cancelled' where vehicle_no=:vehicleno 
+and status='Booked']]></db:sql>
+						<db:input-parameters><![CDATA[#[{
+	"vehicleno" : payload.vehicleno
+}]]]></db:input-parameters>
+					</db:update>
+				</route>
+			</scatter-gather>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="38fc57ba-3747-43fa-9a65-a96f64d843fa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"vehicleno" : payload.vehicleno,
+	"Status" : "Cancelled"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="f2ba0e60-266f-46a3-96b6-3e1bfe995ac4" message="completed"/>
+	</flow>
+</mule>

@@ -1,0 +1,9 @@
+{ "pickuplocation": "Chennai",
+   "droplocation": "Hyderabad",
+   "noofperson" : 6,
+   "vehicletype": "SUV",
+   "pickuptime" : "10:00AM",
+   "passengername" : "Bala",
+   "fare": 9000,
+   "vehicleno" : "TN12WD9867"
+}

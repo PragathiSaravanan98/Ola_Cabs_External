@@ -1,0 +1,77 @@
+#%RAML 1.0
+title: Ola_Cabs_ExternalAPI
+types:
+  SearchCab: !include data_type/searchcab.raml
+  BookCabip : !include data_type/bookcabip.raml
+traits:
+  client-id-required:
+    headers:
+      client_id:
+        type: string
+      client_secret:
+        type: string
+    responses:
+      401:
+        description: Unauthorized, The client_id or client_secret are not valid or the client does not have access.
+      429:
+        description: The client used all of its request quota for the current period.
+      500:
+        description: An error occurred, see the specific message (Only if it is a WSDL endpoint).
+      503:
+        description: Contracts Information Unreachable.
+        
+/searchcab:
+  is: [client-id-required] 
+  get:
+    queryParameters:
+      pickuplocation:
+        required: true
+        enum:
+        - Chennai
+        - Bangalore
+        - Hyderabad
+        - Kerala
+      droplocation:
+        required: true
+        enum:
+        - Chennai
+        - Bangalore
+        - Hyderabad
+        - Kerala        
+      vehicletype:
+        required: true
+        enum:
+        - SUV
+        - SEDAN
+    responses:
+      200:
+        body:
+          application/json:
+            type: SearchCab[]
+            examples:
+              output: !include examples/searchcab.raml
+/bookcab:
+  post:
+    body:
+      application/json:
+        type: BookCabip
+        examples:
+          input: !include example/bookcabIP.raml
+    responses:
+      200:
+        body:
+          application/json:
+            example: 
+             message: "Cab booked"
+/cancelcab:     
+ post: 
+  body:
+    application/json:
+      examples:
+        input: {"Vehicleno" : "TN10SD3452"}
+  responses:
+    200:
+        body:
+          application/json:
+            example: 
+             message : "Cab Cancelled"    

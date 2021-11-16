@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="GetCabsFlow" doc:id="8fbbd0c8-b2b3-4953-ba98-c38eb272cdfb" >
+		<db:select doc:name="Select" doc:id="974a2429-8461-4eb3-937c-65966cf6d450" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT F.PICKUP_LOCATION , F.DROP_LOCATION, C.DRIVER_CONTACT , F.FARE , C.VEHICLE_TYPE , C.SEATS  FROM OLA_CABDETAILS C
+JOIN OLA_FAREDETAILS F ON C.VEHICLE_TYPE=F.VEHICLETYPE AND C.CURRENT_LOCATION=F.PICKUP_LOCATION
+WHERE F.PICKUP_LOCATION=:pickuplocation and F.DROP_LOCATION=:droplocation and F.VEHICLETYPE=:vehicletype and C.STATUS='Available']]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"pickuplocation" : vars.pickuplocation,
+	"droplocation" : vars.droplocation,
+	"vehicletype" : vars.vehicletype
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="02f19b57-b9c7-4ef4-891f-565d19c1d8e3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	pickuplocation: payload01.PICKUP_LOCATION default "",
+	droplocation: payload01.DROP_LOCATION default "",
+	contactno: payload01.DRIVER_CONTACT as Number default 0,
+	fare: payload01.FARE default 0,
+	vehicletype: payload01.VEHICLE_TYPE default "",
+	noofpassengers: payload01.SEATS default 0
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7e221900-377b-4f3c-8c1c-8251628a5336" message="Select successfull"/>
+	</flow>
+</mule>

@@ -1,0 +1,11 @@
+http:
+ listener:
+  host: "localhost"
+  port: "8081"
+  
+db:
+ host : "localhost"
+ port : "1521"
+ username : "system"
+ password : "orcl"
+ servicename : "orcl"

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="BookCabsFlow" doc:id="8fbbd0c8-b2b3-4953-ba98-c38eb272cdfb" >
+		<ee:transform doc:name="Transform Message" doc:id="68c4ce55-4529-4ea5-aa73-7d086ad27f91" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="passengername" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.passengername as String]]></ee:set-variable>
+				<ee:set-variable variableName="pickuptime" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.pickuptime as String]]></ee:set-variable>
+				<ee:set-variable variableName="STATUS" ><![CDATA[%dw 2.0
+output application/java
+---
+'Booked']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Select" doc:id="a9b6e227-913a-41f9-806e-39ff875de925" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT VEHICLE_NO,PICKUP_LOCATION,DROP_LOCATION,DRIVER_CONTACT,FARE,VEHICLE_TYPE,SEATS , RN FROM (
+SELECT C.VEHICLE_NO, F.PICKUP_LOCATION , F.DROP_LOCATION, C.DRIVER_CONTACT , F.FARE , C.VEHICLE_TYPE , C.SEATS , 
+ROW_NUMBER() OVER (ORDER BY F.FARE) AS RN  
+FROM OLA_CABDETAILS C
+JOIN OLA_FAREDETAILS F ON C.VEHICLE_TYPE=F.VEHICLETYPE AND C.CURRENT_LOCATION=F.PICKUP_LOCATION
+WHERE F.PICKUP_LOCATION=:pickuplocation and F.DROP_LOCATION=:droplocation and F.VEHICLETYPE=:vehicletype and C.STATUS='Available'
+)WHERE RN=1]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"pickuplocation" : payload.pickuplocation,
+	"droplocation" : payload.droplocation,
+	"vehicletype" : payload.vehicletype
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="e92fa01a-56e7-40b5-80c4-e81afc2eea56" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload , indexOfPayload01 ) ->
+{
+	pickuplocation: payload.PICKUP_LOCATION ,
+	droplocation: payload.DROP_LOCATION,
+	noofperson: payload.SEATS,
+	vehicletype: payload.VEHICLE_TYPE,
+	pickuptime: vars.pickuptime,
+	passengername: vars.passengername,
+	fare: payload.FARE,
+	vehicleno: payload.VEHICLE_NO
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="d4498fea-122f-4093-83b5-5641771612a9" >
+			<scatter-gather doc:name="Scatter-Gather" doc:id="99a6206b-623f-4c62-ae06-6e103a74c68a" >
+				<route >
+					<db:insert doc:name="Insert" doc:id="6f8fec20-28e6-4e6a-8a10-9e426bc0da4c" config-ref="Database_Config">
+			<db:sql><![CDATA[      INSERT INTO OLA_BOOKINGS (VEHICLE_NO, VEHICLE_TYPE, PICKUP_LOCATION, DROP_LOCATION, STATUS, NO_OF_PERSON, FARE, PICKUPTIME) 
+VALUES (:vehicleno, :vehicletype,:pickuplocation , :droplocation, :status, :noofperson, :fare, :pickuptime)]]></db:sql>
+				<db:input-parameters><![CDATA[#[{
+	"vehicleno" : payload.vehicleno,
+	"vehicletype" : payload.vehicletype,
+	"pickuplocation" : payload.pickuplocation,
+	"droplocation" : payload.droplocation,
+	"status" : vars.status,
+	"noofperson" : payload.noofperson as Number,
+	"fare" : payload.fare as Number,
+	"pickuptime" : payload.pickuptime
+	}]]]></db:input-parameters>
+		</db:insert>
+				</route>
+				<route >
+					<db:update doc:name="Update" doc:id="39991fd2-cfc4-4abe-9cba-5bcb0dd5a5a5" config-ref="Database_Config">
+						<db:sql ><![CDATA[update ola_cabdetails set status='Cab Booked' where vehicle_no=:vehicleno]]></db:sql>
+						<db:input-parameters ><![CDATA[#[{
+	"vehicleno" : payload.vehicleno
+}]]]></db:input-parameters>
+					</db:update>
+				</route>
+			</scatter-gather>
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="f2ba0e60-266f-46a3-96b6-3e1bfe995ac4" message="completed"/>
+	</flow>
+</mule>
