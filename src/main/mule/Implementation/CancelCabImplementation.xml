@@ -10,7 +10,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<scatter-gather doc:name="Scatter-Gather" doc:id="99a6206b-623f-4c62-ae06-6e103a74c68a" >
 				<route >
 					<db:update doc:name="Updatecabdetails" doc:id="39991fd2-cfc4-4abe-9cba-5bcb0dd5a5a5" config-ref="Database_Config">
-						<db:sql ><![CDATA[update ola_cabdetails set status='Available' where vehicle_no=:vehicleno 
+						<db:sql ><![CDATA[update OLA_cabdetails set status='Available' where vehicle_no=:vehicleno 
 and status='Cab Booked']]></db:sql>
 						<db:input-parameters ><![CDATA[#[{
 	"vehicleno" : payload.vehicleno
@@ -19,7 +19,7 @@ and status='Cab Booked']]></db:sql>
 				</route>
 				<route >
 					<db:update doc:name="Updatebookingdetials" doc:id="c7ede5b1-6280-4e6f-a241-caeadeae5797" config-ref="Database_Config">
-						<db:sql><![CDATA[update ola_bookings set status='Cancelled' where vehicle_no=:vehicleno 
+						<db:sql><![CDATA[update OLA_bookings set status='Cancelled' where vehicle_no=:vehicleno 
 and status='Booked']]></db:sql>
 						<db:input-parameters><![CDATA[#[{
 	"vehicleno" : payload.vehicleno

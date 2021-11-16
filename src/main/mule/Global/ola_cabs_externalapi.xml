@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-  <flow name="ola_cabs_externalapi-main">
+    <flow name="ola_cabs_externalapi-main">
         <http:listener config-ref="ola_cabs_externalapi-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
@@ -120,29 +120,31 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
+    <flow name="get:\report:ola_cabs_externalapi-config">
+		<flow-ref doc:name="Flow Reference" doc:id="3b5ffaaf-c706-4652-a84c-db1ac3813f48" name="ReportCabsFlow"/>
+    </flow>
     <flow name="get:\searchcab:ola_cabs_externalapi-config">
-        <ee:transform doc:name="Transform Message" doc:id="183a3884-7725-409b-af33-5b774a2bca34" >
-			<ee:message >
-			</ee:message>
-			<ee:variables >
-				<ee:set-variable variableName="pickuplocation" ><![CDATA[%dw 2.0
+		<ee:transform doc:name="Transform Message" doc:id="e744fe7e-1d63-4526-ae06-782946aa2bb3">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="pickuplocation"><![CDATA[%dw 2.0
 output application/java
 ---
 attributes.queryParams.pickuplocation]]></ee:set-variable>
-				<ee:set-variable variableName="droplocation" ><![CDATA[%dw 2.0
+				<ee:set-variable variableName="droplocation"><![CDATA[%dw 2.0
 output application/java
 ---
 attributes.queryParams.droplocation]]></ee:set-variable>
-				<ee:set-variable variableName="vehicletype" ><![CDATA[%dw 2.0
+				<ee:set-variable variableName="vehicletype"><![CDATA[%dw 2.0
 output application/java
 ---
 attributes.queryParams.vehicletype]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="Flow Reference" doc:id="0724b832-ed92-4092-aa2d-671deef32f64" name="CancelCabFlow"/>
-		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="9a60947d-ec2a-48be-a695-555629d49aaa">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
+		<flow-ref doc:name="Flow Reference" doc:id="c16a7de8-c2a5-401e-a231-65dd5b2bd553" name="GetCabsFlow" />
+		<ee:transform doc:name="Transform Message" doc:id="38ca2101-d7ef-4deb-a5e2-aac843fe0bbd" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload map ( payload01 , indexOfPayload01 ) -> {
@@ -153,13 +155,13 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 	noofpassengers: payload01.noofpassengers,
 	contactno: payload01.contactno
 }]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+			</ee:message>
+		</ee:transform>
     </flow>
     <flow name="post:\bookcab:application\json:ola_cabs_externalapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="91017094-eafc-48af-adac-604de0f779ee" name="CancelCabFlow"/>
+		<flow-ref doc:name="Flow Reference" doc:id="d75be6a8-811d-41fc-8d9e-2e84570580a2" name="BookCabsFlow" />
     </flow>
     <flow name="post:\cancelcab:application\json:ola_cabs_externalapi-config">
-		<flow-ref doc:name="Flow Reference" doc:id="19a1f142-f275-44c7-a747-cc36b3bc92e8" name="CancelCabFlow"/>
+		<flow-ref doc:name="Flow Reference" doc:id="742c7a89-5c81-489a-a6c5-b9460cf7a19c" name="CancelCabFlow" />
     </flow>
 </mule>

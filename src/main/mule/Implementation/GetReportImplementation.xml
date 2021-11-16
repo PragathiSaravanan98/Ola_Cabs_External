@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="ReportCabsFlow" doc:id="8fbbd0c8-b2b3-4953-ba98-c38eb272cdfb" >
+		<db:select doc:name="Select" doc:id="974a2429-8461-4eb3-937c-65966cf6d450" config-ref="Database_Config">
+			<db:sql ><![CDATA[  SELECT PASSENGERNAME , VEHICLE_NO , VEHICLE_TYPE , PICKUP_LOCATION , DROP_LOCATION , STATUS , NO_OF_PERSON , FARE , PICKUPTIME FROM OLA_BOOKINGS
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="6cbf3f5b-a022-4e76-a8bf-25da17257277" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload , indexOfPayload ) -> {
+	passengername: payload.PASSENGERNAME,
+	vehicleno: payload.VEHICLE_NO,
+	vehicletype: payload.VEHICLE_TYPE,
+	pickuplocation: payload.PICKUP_LOCATION,
+	droplocation: payload.DROP_LOCATION,
+	status: payload.STATUS,
+	noofperson: payload.NO_OF_PERSON,
+	fare: payload.FARE,
+	pickuptime: payload.PICKUPTIME
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7e221900-377b-4f3c-8c1c-8251628a5336" message="Select successfull"/>
+	</flow>
+</mule>

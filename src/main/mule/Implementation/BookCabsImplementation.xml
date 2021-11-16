@@ -25,7 +25,8 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<db:select doc:name="Select" doc:id="a9b6e227-913a-41f9-806e-39ff875de925" config-ref="Database_Config">
-			<db:sql ><![CDATA[SELECT VEHICLE_NO,PICKUP_LOCATION,DROP_LOCATION,DRIVER_CONTACT,FARE,VEHICLE_TYPE,SEATS , RN FROM (
+			<db:sql ><![CDATA[
+SELECT VEHICLE_NO,PICKUP_LOCATION,DROP_LOCATION,DRIVER_CONTACT,FARE,VEHICLE_TYPE,SEATS , RN FROM (
 SELECT C.VEHICLE_NO, F.PICKUP_LOCATION , F.DROP_LOCATION, C.DRIVER_CONTACT , F.FARE , C.VEHICLE_TYPE , C.SEATS , 
 ROW_NUMBER() OVER (ORDER BY F.FARE) AS RN  
 FROM OLA_CABDETAILS C
@@ -62,9 +63,10 @@ payload map ( payload , indexOfPayload01 ) ->
 			<scatter-gather doc:name="Scatter-Gather" doc:id="99a6206b-623f-4c62-ae06-6e103a74c68a" >
 				<route >
 					<db:insert doc:name="Insert" doc:id="6f8fec20-28e6-4e6a-8a10-9e426bc0da4c" config-ref="Database_Config">
-			<db:sql><![CDATA[      INSERT INTO OLA_BOOKINGS (VEHICLE_NO, VEHICLE_TYPE, PICKUP_LOCATION, DROP_LOCATION, STATUS, NO_OF_PERSON, FARE, PICKUPTIME) 
-VALUES (:vehicleno, :vehicletype,:pickuplocation , :droplocation, :status, :noofperson, :fare, :pickuptime)]]></db:sql>
+			<db:sql><![CDATA[      INSERT INTO OLA_BOOKINGS (PASSENGERNAME,VEHICLE_NO, VEHICLE_TYPE, PICKUP_LOCATION, DROP_LOCATION, STATUS, NO_OF_PERSON, FARE, PICKUPTIME) 
+VALUES (:passengername, :vehicleno, :vehicletype,:pickuplocation , :droplocation, :status, :noofperson, :fare, :pickuptime)]]></db:sql>
 				<db:input-parameters><![CDATA[#[{
+	"passengername" : payload.passengername,
 	"vehicleno" : payload.vehicleno,
 	"vehicletype" : payload.vehicletype,
 	"pickuplocation" : payload.pickuplocation,
@@ -77,8 +79,8 @@ VALUES (:vehicleno, :vehicletype,:pickuplocation , :droplocation, :status, :noof
 		</db:insert>
 				</route>
 				<route >
-					<db:update doc:name="Update" doc:id="39991fd2-cfc4-4abe-9cba-5bcb0dd5a5a5" config-ref="Database_Config">
-						<db:sql ><![CDATA[update ola_cabdetails set status='Cab Booked' where vehicle_no=:vehicleno]]></db:sql>
+					<db:update doc:name="Update" doc:id="077eafba-e4ca-46a3-ad8b-cc309a78dde5" config-ref="Database_Config">
+						<db:sql ><![CDATA[update OLA_cabdetails set status='Cab Booked' where vehicle_no=:vehicleno]]></db:sql>
 						<db:input-parameters ><![CDATA[#[{
 	"vehicleno" : payload.vehicleno
 }]]]></db:input-parameters>

@@ -3,6 +3,7 @@ title: Ola_Cabs_ExternalAPI
 types:
   SearchCab: !include data_type/searchcab.raml
   BookCabip : !include data_type/bookcabip.raml
+  ReportCab : !include data_type/report.raml
 traits:
   client-id-required:
     headers:
@@ -75,3 +76,14 @@ traits:
           application/json:
             example: 
              message : "Cab Cancelled"    
+             
+/report:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: ReportCab[]
+            examples:
+              input : !include examples/report_example.raml
+
