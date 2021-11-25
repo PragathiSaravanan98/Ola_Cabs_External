@@ -13,11 +13,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<ee:set-variable variableName="passengername" ><![CDATA[%dw 2.0
 output application/java
 ---
-payload.passengername as String]]></ee:set-variable>
+payload.passengername]]></ee:set-variable>
 				<ee:set-variable variableName="pickuptime" ><![CDATA[%dw 2.0
 output application/java
 ---
-payload.pickuptime as String]]></ee:set-variable>
+payload.pickuptime]]></ee:set-variable>
 				<ee:set-variable variableName="STATUS" ><![CDATA[%dw 2.0
 output application/java
 ---
@@ -32,7 +32,7 @@ ROW_NUMBER() OVER (ORDER BY F.FARE) AS RN
 FROM OLA_CABDETAILS C
 JOIN OLA_FAREDETAILS F ON C.VEHICLE_TYPE=F.VEHICLETYPE AND C.CURRENT_LOCATION=F.PICKUP_LOCATION
 WHERE F.PICKUP_LOCATION=:pickuplocation and F.DROP_LOCATION=:droplocation and F.VEHICLETYPE=:vehicletype and C.STATUS='Available'
-)WHERE RN=1]]></db:sql>
+)a WHERE RN=1]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	"pickuplocation" : payload.pickuplocation,
 	"droplocation" : payload.droplocation,
@@ -80,7 +80,7 @@ VALUES (:passengername, :vehicleno, :vehicletype,:pickuplocation , :droplocation
 				</route>
 				<route >
 					<db:update doc:name="Update" doc:id="077eafba-e4ca-46a3-ad8b-cc309a78dde5" config-ref="Database_Config">
-						<db:sql ><![CDATA[update OLA_cabdetails set status='Cab Booked' where vehicle_no=:vehicleno]]></db:sql>
+						<db:sql ><![CDATA[update OLA_CABDETAILS set STATUS='Cab Booked' where VEHICLE_NO=:vehicleno]]></db:sql>
 						<db:input-parameters ><![CDATA[#[{
 	"vehicleno" : payload.vehicleno
 }]]]></db:input-parameters>
